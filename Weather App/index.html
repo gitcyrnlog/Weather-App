@@ -3,38 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Weather App</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-<div class="card" >
-    <div class="search">
-        <input type="text" placeholder="Enter City Name" spellcheck="false">
-        <button><i class="fa-solid fa-magnifying-glass"></i></button>
-    </div>
-    <div class="weather">
-        <i class="fa-solid fa-cloud-rain" class="weather-icon"></i>
-        <h1 class="temp">22°C</h1>
-        <h2 class="city">Chicago</h2>
-        <div class="details">
-            <div class="col">
-                <i class="fa-solid fa-droplet"></i>
-                <div>
-                    <p class="humidity">50%</p>
-                    <p>Humidity</p>
+    <div class="card">
+        <div class="search">
+            <input type="text" placeholder="Enter City Name" spellcheck="false">
+            <button><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+        <div class="weather" style="display: none;">
+            <i class="fa-solid fa-cloud-rain weather-icon"></i>
+            <h1 class="temp">22°C</h1>
+            <h2 class="city">Chicago</h2>
+            <div class="details">
+                <div class="col">
+                    <i class="fa-solid fa-droplet"></i>
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <i class="fa-solid fa-wind"></i>
+                    <div>
+                        <p class="wind">15 km/h</p>
+                        <p>Wind Speed</p>
+                    </div>
                 </div>
             </div>
-            <div class="col">
-                <i class="fa-solid fa-wind"></i>
-                <div>
-                    <p class="wind">15 km/h</p>
-                    <p>Wind Speed</p>
-                </div>
+            <div class="forecast">
+                <h3>5-Day Forecast</h3>
+                <div class="forecast-container"></div>
+            </div>
+            <div class="advice">
+                <h3>Weather Advice</h3>
+                <p class="advice-text"></p>
             </div>
         </div>
     </div>
-</div>
-    
+
+    <script>
+        const apiKey = "063bb3f17cf699dffe09544868e71288";
+        const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+        const forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?units=metric&q=";
+
+        const searchBox = document.querySelector(".search input");
+        const searchBtn = document.querySelector(".search button");
+        const weatherIcon = document.querySelector(".weather-icon");
+        const weatherDiv = document.querySelector(".weather");
+        const forecastContainer = document.querySelector(".forecast-container");
+        const adviceText = document.querySelector(".advice-text"); // Fixed variable name
+
+        function getWeatherAdvice(temp, condition) {
+            let advice = "";
+
+            // Temperature based advice 
+            if (temp <= 0) {
+                advice += "❄️ It's freezing! Wear warm layers, gloves, and a heavy coat. Stay indoors when possible.\n";
+            } else if (temp <= 10) {
+                advice += "🧥 It's cold. Wear a warm coat and consider a scarf and gloves.\n";
+            } else if (temp <= 20) {
+                advice += "👕 Mild temperatures. A light jacket or sweater should be comfortable.\n";
+            } else if (temp <= 30) {
+                advice += "☀️ Warm weather! Light clothing is recommended. Stay hydrated.\n";
+            } else { 
+                advice += "🔥 Very hot! Wear light, breathable clothing. Stay hydrated and avoid extended sun exposure.\n"; // Fixed duplicate += 
+            }
+            
+            // Condition-based advice
+            switch(condition.toLowerCase()) {
+                case 'rain':
+                    advice += "☔ Bring an umbrella and wear waterproof shoes.\n";
+                    break;
+                case 'snow':
+                    advice += "❄️ Watch for icy conditions. Wear non-slip boots.\n";
+                    break; // Added missing break
+                case 'thunderstorm':
+                    advice += "⚡ Stay indoors if possible as well as Avoid open areas.\n";
+                    break; // Added missing break
+                case 'clear':
+                    advice += "😎 Its a Good day for outdoor activities! Don't forget your sunscreen!";
+                    break;
+            }
+
+            return advice;
+        }
+
+        function getWeatherIcon(condition) {
+            switch(condition.toLowerCase()) { // Added toLowerCase() for consistency
+                case 'clouds': return "fa-cloud";
+                case 'clear': return "fa-sun";
+                case 'rain': return "fa-cloud-rain";
+                case 'drizzle': return "fa-cloud-rain";
+                case 'mist': return "fa-smog";
+                case 'snow': return "fa-snowflake";
+                case 'thunderstorm': return "fa-bolt";
+                default: return "fa-cloud";
+            }
+        }
+
+        async function checkWeather(city) {
+            try {
+                if (!city) {
+                    alert("Please enter a city name");
+                    return;
+                }
+
+                // Get current weather
+                const weatherResponse = await fetch(apiUrl + city + `&appid=${apiKey}`);
+                const weatherData = await weatherResponse.json(); // Changed variable name for clarity
+
+                if (weatherData.cod === "404") {
+                    alert("City not found");
+                    return;
+                }
+
+                // Update weather information
+                document.querySelector(".city").innerHTML = weatherData.name;
+                document.querySelector(".temp").innerHTML = Math.round(weatherData.main.temp) + "°C";
+                document.querySelector(".humidity").innerHTML = weatherData.main.humidity + "%";
+                document.querySelector(".wind").innerHTML = weatherData.wind.speed + " km/h";
+
+                // Update weather icon
+                const weatherCondition = weatherData.weather[0].main;
+                weatherIcon.className = `fa-solid ${getWeatherIcon(weatherCondition)} weather-icon`;
+
+                // Get and display advice 
+                const advice = getWeatherAdvice(weatherData.main.temp, weatherCondition);
+                adviceText.innerHTML = advice;
+
+                // Get forecast 
+                const forecastResponse = await fetch(forecastUrl + city + `&appid=${apiKey}`);
+                const forecastData = await forecastResponse.json(); // Fixed typo in variable name
+
+                // Display forecast 
+                forecastContainer.innerHTML = '';
+                const dailyForecasts = forecastData.list.filter(item => item.dt_txt.includes('12:00:00')).slice(0, 5);
+
+                dailyForecasts.forEach(day => {
+                    const date = new Date(day.dt * 1000);
+                    const dayName = date.toLocaleDateString('en-US', {weekday: 'short'}); // Fixed typo in method name
+                    const icon = getWeatherIcon(day.weather[0].main);
+
+                    forecastContainer.innerHTML += `
+                        <div class="forecast-day">
+                            <p>${dayName}</p>
+                            <i class="fa-solid ${icon}"></i>
+                            <p>${Math.round(day.main.temp)}°C</p>
+                        </div>
+                    `; // Fixed template literal syntax
+                });
+
+                // Show the weather div
+                weatherDiv.style.display = "block";
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert("An error occurred while fetching weather data");
+            }
+        }
+
+        // Event listeners
+        searchBtn.addEventListener("click", () => {
+            checkWeather(searchBox.value);
+        });
+
+        searchBox.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                checkWeather(searchBox.value);
+            }
+        });
+    </script>
 </body>
 </html>
