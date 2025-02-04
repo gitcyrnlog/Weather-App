@@ -10,6 +10,87 @@ const forecastContainer = document.querySelector(".forecast-container");
 const adviceText = document.querySelector(".advice-text");
 const loadingDiv = document.querySelector(".loading");
 const weatherAlert = document.querySelector(".weather-alert");
+const searchInput = document.querySelector("#location-search");
+const suggestionsContainer = document.querySelector("#search-suggestions");
+
+// Debounce efunction to limit API calls
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeoout = setTimeout(later, wait);
+    };
+}
+
+// Function to fetch location sugestions 
+async function fetchLocationSuggestions(query) {
+    if (query.legth < 2) {
+        suggestionsContainer.style.display = 'none';
+        return;
+    }
+    try {
+        const response = await fetch(
+            `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=5&appid=${apiKey}`
+        );
+        const data = await response.json();
+
+        if (data.length > 0) {
+            displaySuggestions(data);
+        } else {
+            suggestionsContainer.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error fetching suggestins:', error):
+        suggestionsContainer.style.display = 'none';
+    }
+}
+
+// Function to display suggestions 
+function displaySuggestions(locations) {
+    suggestionsContainer.innerHTML = '';
+
+    locations.forEach(location => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+
+        const locationName = document.createElement('span');
+        locationName.className = 'location-name';
+        locationName.textContent = location.name;
+
+        const locationDetail = document.createElement('span');
+        locationDetail.className = 'location-detail';
+        locationDetail.textContent = `${location.state || ''} ${location.country}`.trim();
+
+        div.appendChild(locationName);
+        div.appendChild(locationDetail);
+
+        div.addEventListener('click', () => {
+            searchInput.value = `${location.name}, ${location.country}`;
+            suggestionsContainer.style.display = 'none';
+            checkWeatherByCoords(location.lat, location.lon);
+        });
+        suggestionsContainer.appendChild(div);
+    });
+    suggestionsContainer.style.display = 'block';
+}
+
+//Add event listeners for the search functionality 
+const debouncedFetch = debounce(fetchLocationSuggestions, 300);
+
+searchInput.addEventListener('input', (e) => {
+    debouncedFetch(e.target.value);
+});
+
+// Close suggestions when clicing outside 
+document.addEventtListener('click', (e) => {
+    if ('!suggestionsContainer.contains(e.target) && e.target !== searchInput') {
+        suggestionsContainer.style.display = 'none';
+    }
+});
 
 // Get user's location on page load
 window.addEventListener('load', () => {
@@ -185,12 +266,14 @@ async function updateForecast(city) {
 
 // Event listeners
 searchBtn.addEventListener("click", () => {
-    checkWeather(searchBox.value);
+    checkWeather(searchInput.value);
+    suggestionsContainer.style.display = 'none';
 });
 
 // Also add this to handle the Enter key in the search box
 searchBox.addEventListener("keypress", (event) => {
     if (event.key === "Enter") {
-        checkWeather(searchBox.value);
+        checkWeather(searchInput.value);
+        suggestionsContainer.style.display = 'none';
     }
 });

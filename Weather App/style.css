@@ -30,10 +30,48 @@ body {
 }
 
 .search {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 30px;
+}
+
+.search-suggestions {
+    position:absolute;
+    top:100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 10px;
+    margin-top: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+
+}
+
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.suggestion-item:hover {
+    background: rgba(0, 119, 182, 0.1);
+}
+
+.suggestion-item .location-name {
+    font-weight: 500;
+}
+
+.suggestion-item .location-detail {
+    font-size: 0.8em;
+    color: #666;
 }
 
 .search input {
