@@ -11,7 +11,7 @@
     --secondary-color: #DFF6FF;
     --text-color: #333;
     --background-color: #fff;
-    --accent-color: #0077b6;
+    --accent-color: #0d1011;
     --hover-color: #023e8a;
 }
 
@@ -23,8 +23,37 @@
     --background-color: #1a1a1a;
     --accent-color: #00b4d8;
     --hover-color: #0077b6;
+    --forecast-background: rgba(26, 26, 26, 0.8); /* New variable for forecast background */
 }
 
+/* Modifying the dark mode specific styles */
+[data-theme="dark"] .weather-icon,
+[data-theme="dark"] .temp,
+[data-theme="dark"] .city {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .forecast,
+[data-theme="dark"] .forecast-day {
+    background: white;
+}
+
+[data-theme="dark"] .search button i,
+[data-theme="dark"] .search input::placeholder {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .search-suggestions {
+    background: rgba(26, 26, 26, 0.95);
+}
+
+[data-theme="dark"] .suggestion-item {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .suggestion-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
 
 body {
     background: linear-gradient(135deg, #00b4d8, #0077b6);
@@ -57,14 +86,6 @@ body {
     margin-bottom: 20px;
 }
 
-.search {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 30px;
-}
-
-
 .theme-toggle button {
     background: var(--secondary-color);
     border: 1px solid var(--primary-color);
@@ -82,13 +103,13 @@ body {
 }
 
 .search button {
-    background: var(--accent-color);
-    color: white;
-    transition: background 0.3s ease, transform 0.2s ease;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    transition: transform 0.2s ease;
 }
 
 .search button:hover {
-    background: var(--hover-color);
     transform: scale(1.1);
 }
 
@@ -117,6 +138,29 @@ body {
     margin-bottom: 30px;
 }
 
+
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 5px;
+    z-index: 1000;
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
 .search input {
     flex: 1;
     padding: 15px;
@@ -127,10 +171,14 @@ body {
     border-radius: 30px;
     color: var(--text-color);
 }
+
 .weather {
     text-align: center;
 }
 
+.weather h2{
+    color: var(--text-color);
+}
 
 .col {
     display: flex;
@@ -161,18 +209,18 @@ body {
     text-align: center;
     font-size: 80px;
     margin: 20px auto;
-    color: var(--accent-color);
+    color: var(--text-color);
 }
 
 .weather .temp {
-    color: var(--accent-color);
+    color: var(--text-color);
 }
 
 .temp {
     font-size: 48px;
     font-weight: 600;
     margin: 10px 0;
-    color: var(--accent-color);
+    color: var(--text-color);
     text-align: center;
 }
 
