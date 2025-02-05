@@ -2,7 +2,7 @@ const apiKey = "063bb3f17cf699dffe09544868e71288";
 const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
 const forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?units=metric&q=";
 
-const searchBox = document.querySelector(".search input");
+const searchInput = document.querySelector("#location-search");
 const searchBtn = document.querySelector(".search button");
 const weatherIcon = document.querySelector(".weather-icon");
 const weatherDiv = document.querySelector(".weather");
@@ -10,64 +10,66 @@ const forecastContainer = document.querySelector(".forecast-container");
 const adviceText = document.querySelector(".advice-text");
 const loadingDiv = document.querySelector(".loading");
 const weatherAlert = document.querySelector(".weather-alert");
-const searchInput = document.querySelector("#location-search");
 const suggestionsContainer = document.querySelector("#search-suggestions");
+const themeSwitch = document.getElementById("theme-switch");
+const unitToggle = document.getElementById("unit-toggle");
 
-// Debounce efunction to limit API calls
+let currentTheme = 'light';
+let currentUnit = 'C';
+
+// Theme Switch
+themeSwitch.addEventListener('click', () => {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    themeSwitch.innerHTML = `<i class="fa-solid fa-${currentTheme === 'light' ? 'moon' : 'sun'}"></i>`;
+});
+
+// Temperature Unit Toggle
+unitToggle.addEventListener('click', () => {
+    currentUnit = currentUnit === 'C' ? 'F' : 'C';
+    unitToggle.textContent = `°${currentUnit}`;
+    updateTemperatureDisplay();
+});
+
+function updateTemperatureDisplay() {
+    const tempElements = document.querySelectorAll(".temp, .feels-like");
+    tempElements.forEach(el => {
+        let temp = parseInt(el.dataset.temp);
+        el.innerHTML = currentUnit === 'C' ? `${temp}°C` : `${Math.round((temp * 9/5) + 32)}°F`;
+    });
+}
+
+// Debounce function to limit API calls
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
         clearTimeout(timeout);
-        timeoout = setTimeout(later, wait);
+        timeout = setTimeout(() => func(...args), wait);
     };
 }
 
-// Function to fetch location sugestions 
 async function fetchLocationSuggestions(query) {
-    if (query.legth < 2) {
+    if (query.length < 2) {
         suggestionsContainer.style.display = 'none';
         return;
     }
     try {
-        const response = await fetch(
-            `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=5&appid=${apiKey}`
-        );
+        const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=5&appid=${apiKey}`);
         const data = await response.json();
-
-        if (data.length > 0) {
-            displaySuggestions(data);
-        } else {
-            suggestionsContainer.style.display = 'none';
-        }
+        if (data.length > 0) displaySuggestions(data);
+        else suggestionsContainer.style.display = 'none';
     } catch (error) {
-        console.error('Error fetching suggestins:', error):
+        console.error('Error fetching suggestions:', error);
         suggestionsContainer.style.display = 'none';
     }
 }
 
-// Function to display suggestions 
 function displaySuggestions(locations) {
     suggestionsContainer.innerHTML = '';
-
     locations.forEach(location => {
         const div = document.createElement('div');
         div.className = 'suggestion-item';
-
-        const locationName = document.createElement('span');
-        locationName.className = 'location-name';
-        locationName.textContent = location.name;
-
-        const locationDetail = document.createElement('span');
-        locationDetail.className = 'location-detail';
-        locationDetail.textContent = `${location.state || ''} ${location.country}`.trim();
-
-        div.appendChild(locationName);
-        div.appendChild(locationDetail);
-
+        div.textContent = `${location.name}, ${location.country}`;
         div.addEventListener('click', () => {
             searchInput.value = `${location.name}, ${location.country}`;
             suggestionsContainer.style.display = 'none';
@@ -78,33 +80,98 @@ function displaySuggestions(locations) {
     suggestionsContainer.style.display = 'block';
 }
 
-//Add event listeners for the search functionality 
 const debouncedFetch = debounce(fetchLocationSuggestions, 300);
+searchInput.addEventListener('input', () => debouncedFetch(searchInput.value));
 
-searchInput.addEventListener('input', (e) => {
-    debouncedFetch(e.target.value);
+searchBtn.addEventListener("click", () => {
+    const cityName = searchInput.value.trim();
+    if (cityName) checkWeather(cityName);
 });
 
-// Close suggestions when clicing outside 
-document.addEventtListener('click', (e) => {
-    if ('!suggestionsContainer.contains(e.target) && e.target !== searchInput') {
+searchInput.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        const cityName = searchInput.value.trim();
+        if (cityName) checkWeather(cityName);
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (!suggestionsContainer.contains(e.target) && e.target !== searchInput) {
         suggestionsContainer.style.display = 'none';
     }
 });
 
-// Get user's location on page load
+async function checkWeather(city) {
+    try {
+        loadingDiv.style.display = "block";
+        const response = await fetch(`${apiUrl}${city}&appid=${apiKey}`);
+        if (!response.ok) throw new Error("City not found");
+        const data = await response.json();
+        updateWeatherUI(data);
+    } catch (error) {
+        weatherAlert.textContent = error.message;
+        weatherAlert.style.display = "block";
+    } finally {
+        loadingDiv.style.display = "none";
+    }
+}
+
+function updateWeatherUI(weatherData) {
+    // Get the weather condition
+    const weatherCondition = weatherData.weather[0].main;
+
+    document.querySelector(".city").textContent = weatherData.name;
+    document.querySelector(".temp").textContent = `${Math.round(weatherData.main.temp)}°C`;
+    document.querySelector(".temp").dataset.temp = Math.round(weatherData.main.temp);
+    document.querySelector(".feels-like").textContent = `${Math.round(weatherData.main.feels_like)}°C`;
+    document.querySelector(".feels-like").dataset.temp = Math.round(weatherData.main.feels_like);
+    document.querySelector(".humidity").textContent = `${weatherData.main.humidity}%`;
+    document.querySelector(".wind").textContent = `${Math.round(weatherData.wind.speed)} km/h`;
+    
+    // Determining time of day 
+    const isNight = weatherData.dt > weatherData.sys.sunset || weatherData.dt < weatherData.sys.sunrise;
+
+    // Get and Display advice
+    const advice = getWeatherAdvice(
+        weatherData.main.temp, 
+        weatherCondition, 
+        weatherData.main.humidity, 
+        weatherData.wind.speed
+    );
+    adviceText.innerHTML = advice;
+
+    // Displaying the weather info
+    weatherDiv.style.display = "block";
+    weatherAlert.style.display = "none";    
+
+    // Update Forecast
+    updateForecast(weatherData.name);
+
+    // Update weather icon
+    const iconName = getWeatherIcon(weatherCondition, isNight ? 'night' : 'day');
+    weatherIcon.className = `fa-solid ${iconName} weather-icon`;
+}
+
 window.addEventListener('load', () => {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            checkWeatherByCoords(lat, lon);
-        }, () => {
-            // If user denies location access, use default city
-            checkWeather("London");
-        });
+        navigator.geolocation.getCurrentPosition(
+            (position) => checkWeatherByCoords(position.coords.latitude, position.coords.longitude),
+            () => checkWeather("London")
+        );
     }
 });
+
+async function checkWeatherByCoords(lat, lon) {
+    try {
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
+        const data = await response.json();
+        updateWeatherUI(data);
+    } catch (error) {
+        console.error('Error:', error);
+        weatherAlert.textContent = "Error fetching weather data.";
+        weatherAlert.style.display = "block";
+    }
+}
 
 function getWeatherAdvice(temp, condition, humidity, windSpeed) {
     let advice = "";
@@ -167,77 +234,6 @@ function getWeatherIcon(condition, timeOfDay = 'day') {
     }
 }
 
-async function checkWeatherByCoords(lat, lon) {
-    try {
-        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
-        const data = await response.json();
-        updateWeatherUI(data);
-    } catch (error) {
-        console.error('Error:', error);
-        alert("Error fetching weather data for your location");
-    }
-}
-
-async function checkWeather(city) {
-    try {
-        loadingDiv.style.display = "block";
-        weatherDiv.style.display = "none";
-        
-        if (!city) {
-            alert("Please enter a city name");
-            return;
-        }
-
-        // Get current weather
-        const weatherResponse = await fetch(apiUrl + city + `&appid=${apiKey}`);
-        const weatherData = await weatherResponse.json();
-
-        if (weatherResponse.status === 404) {
-            throw new Error("City not found");
-        }
-
-        updateWeatherUI(weatherData);
-
-    } catch (error) {
-        console.error('Error:', error);
-        weatherAlert.textContent = error.message;
-        weatherAlert.style.display = "block";
-    } finally {
-        loadingDiv.style.display = "none";
-    }
-}
-
-function updateWeatherUI(weatherData) {
-    // Update main weather display
-    document.querySelector(".city").innerHTML = weatherData.name;
-    document.querySelector(".temp").innerHTML = Math.round(weatherData.main.temp) + "°C";
-    document.querySelector(".humidity").innerHTML = weatherData.main.humidity + "%";
-    document.querySelector(".wind").innerHTML = Math.round(weatherData.wind.speed) + " km/h";
-
-    // Determine if it's day or night
-    const isNight = weatherData.dt > weatherData.sys.sunset || weatherData.dt < weatherData.sys.sunrise;
-    
-    // Update weather icon
-    const weatherCondition = weatherData.weather[0].main;
-    weatherIcon.className = `fa-solid ${getWeatherIcon(weatherCondition, isNight ? 'night' : 'day')} weather-icon`;
-
-    // Get and display advice
-    const advice = getWeatherAdvice(
-        weatherData.main.temp, 
-        weatherCondition,
-        weatherData.main.humidity,
-        weatherData.wind.speed
-    );
-    adviceText.innerHTML = advice;
-
-    // Show the weather information
-    weatherDiv.style.display = "block";
-    weatherAlert.style.display = "none";
-
-    // Update forecast
-    updateForecast(weatherData.name);
-}
-
 async function updateForecast(city) {
     try {
         const forecastResponse = await fetch(forecastUrl + city + `&appid=${apiKey}`);
@@ -263,17 +259,3 @@ async function updateForecast(city) {
         console.error('Error updating forecast:', error);
     }
 }
-
-// Event listeners
-searchBtn.addEventListener("click", () => {
-    checkWeather(searchInput.value);
-    suggestionsContainer.style.display = 'none';
-});
-
-// Also add this to handle the Enter key in the search box
-searchBox.addEventListener("keypress", (event) => {
-    if (event.key === "Enter") {
-        checkWeather(searchInput.value);
-        suggestionsContainer.style.display = 'none';
-    }
-});
