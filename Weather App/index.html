@@ -3,7 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Guide</title>
+    <title>Weather Now - Real-time Weather Info from all over the world</title>
+    <meta charset="UTF=8">
+    <meta name="description" content= "Get Instant access to Real-Time weather conditions and accurate forecasts at WeatherNow. Live weather data and forecasting tools available 24/7.">
+    <meta name="keywords" content="weather forecast, real-time weather, live weather data, current weather conditions, weather, weather now, weather radar">
+
+    <!-- Open Graph Tags-->
+    <meta property = "og:type" content="website">
+    <meta property="og:"title" content="WeatherNow - Live Weather & Forecast Information">
+    <meta property="og:description" content="Access real-time weather data and forecasts instantly">
+    <meta property="og:url" content="https://weathernow.info">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="WeatherNow">
+    <meta name="twitter:description" content="Real-time weather data and forecasts at your fingertips">
+        
+    
+    
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -67,5 +85,20 @@
     </div>
 
     <script src="weather.js"></script>
+    <script type="application/ld+json">
+        {
+        "content": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "WeatherNow",
+        "url": "https://weathernow.info"
+        "description": "Real-time weather conditions and forecast application",
+        "applicationCategory": "Weather Service",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type":"Offer",
+            "price": "0"
+         }   
+        }
+        
 </body>
 </html>
