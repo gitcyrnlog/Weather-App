@@ -3,103 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Now - Real-time Weather Info from all over the world</title>
-    <meta charset="UTF=8">
-    <meta name="description" content= "Get Instant access to Real-Time weather conditions and accurate forecasts at WeatherNow. Live weather data and forecasting tools available 24/7.">
-    <meta name="keywords" content="weather forecast, real-time weather, live weather data, current weather conditions, weather, weather now, weather radar">
-
-    <!-- Open Graph Tags-->
-    <meta property = "og:type" content="website">
-    <meta property="og:"title" content="WeatherNow - Live Weather & Forecast Information">
-    <meta property="og:description" content="Access real-time weather data and forecasts instantly">
-    <meta property="og:url" content="https://weathernow.info">
+    <title>WeatherView - Modern Weather App</title>
+    <meta name="description" content="Get real-time weather conditions and accurate forecasts with WeatherView. Modern design with comprehensive weather data.">
+    <meta name="keywords" content="weather forecast, real-time weather, live weather data, current weather conditions, weather app">
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="WeatherView - Modern Weather App">
+    <meta property="og:description" content="Real-time weather data and forecasts with modern UI">
+    <meta property="og:url" content="https://weatherview.app">
 
     <!-- Twitter Card Tags -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="WeatherNow">
-    <meta name="twitter:description" content="Real-time weather data and forecasts at your fingertips">
-        
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1377175543226263"
-     crossorigin="anonymous"></script>
+    <meta name="twitter:title" content="WeatherView">
+    <meta name="twitter:description" content="Modern weather app with real-time data">
     
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="loading"></div>
-    <div class="card">
-        <div class="theme-toggle">
-            <button id="theme-switch">
-                <i class="fa-solid fa-moon"></i>
-            </button>
-            <button id="unit-toggle">°C</button>
-        </div>
-        
-        <div class="search">
-            <input type="text" id="location-search" placeholder="Enter City Name" spellcheck="false">
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v2"/>
+                    <path d="m4.93 4.93 1.41 1.41"/>
+                    <path d="M20 12h2"/>
+                    <path d="m19.07 4.93-1.41 1.41"/>
+                    <path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/>
+                    <path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>
+                </svg>
+                <h1>WeatherView</h1>
+            </div>
+            <div class="controls">
+                <button class="unit-toggle" onclick="toggleUnit()">°C</button>
+                <button class="theme-toggle" onclick="toggleDarkMode()">
+                    <svg id="sun-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="m12 2 0 2"/>
+                        <path d="m12 20 0 2"/>
+                        <path d="m4.93 4.93 1.41 1.41"/>
+                        <path d="m17.66 17.66 1.41 1.41"/>
+                        <path d="m2 12 2 0"/>
+                        <path d="m20 12 2 0"/>
+                        <path d="m6.34 17.66-1.41 1.41"/>
+                        <path d="m19.07 4.93-1.41 1.41"/>
+                    </svg>
+                    <svg id="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Search Bar -->
+        <form class="search-form">
+            <input type="text" id="search-input" class="search-input" placeholder="Search for a city..." />
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <button type="submit" class="search-btn">Search</button>
             <div id="search-suggestions" class="search-suggestions"></div>
-            <button><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+
+        <!-- Loading -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
         </div>
 
-        <div class="weather" style="display: none;">
-            <i class="fa-solid fa-cloud weather-icon"></i>
-            <h1 class="temp">22°C</h1>
-            <h2 class="city">City</h2>
+        <!-- Error -->
+        <div id="error" class="error hidden"></div>
 
-            <div class="details">
-                <div class="col">
-                    <i class="fa-solid fa-temperature-half"></i>
+        <!-- Weather Content -->
+        <div id="weather-content" class="hidden">
+            <!-- Current Weather -->
+            <div class="card">
+                <div class="current-weather">
                     <div>
-                        <p class="feels-like">22°C</p>
-                        <p>Feels Like</p>
+                        <h2 id="location" style="font-size: 1.875rem; font-weight: bold; margin-bottom: 0.5rem;"></h2>
+                        <p id="current-date" class="stat-label"></p>
+                        <div class="weather-main" style="margin-top: 1rem;">
+                            <div id="weather-icon"></div>
+                            <div>
+                                <div id="temperature" class="temp-display"></div>
+                                <div id="description" style="font-size: 1.25rem; text-transform: capitalize;"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col">
-                    <i class="fa-solid fa-droplet"></i>
-                    <div>
-                        <p class="humidity">50%</p>
-                        <p>Humidity</p>
-                    </div>
-                </div>
-                <div class="col">
-                    <i class="fa-solid fa-wind"></i>
-                    <div>
-                        <p class="wind">15 km/h</p>
-                        <p>Wind Speed</p>
+                    <div class="weather-stats">
+                        <div class="stat-card">
+                            <p class="stat-label">Feels Like</p>
+                            <p id="feels-like" class="stat-value"></p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-label">Humidity</p>
+                            <p id="humidity" class="stat-value"></p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-label">Wind</p>
+                            <p id="wind" class="stat-value"></p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-label">Pressure</p>
+                            <p id="pressure" class="stat-value"></p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="forecast">
-                <h3>5-Day Forecast</h3>
-                <div class="forecast-container"></div>
-            </div>
+            <div class="main-grid">
+                <!-- Forecast -->
+                <div class="card">
+                    <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">7-Day Forecast</h2>
+                    <div id="forecast-grid" class="forecast-grid"></div>
+                </div>
 
-            <div class="advice">
-                <h3>Weather Advice</h3>
-                <p class="advice-text"></p>
-            </div>
+                <div class="sidebar">
+                    <!-- Weather Details -->
+                    <div class="card">
+                        <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">Weather Details</h2>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                                        <circle cx="12" cy="12" r="4"/>
+                                        <path d="m12 2 0 2"/>
+                                        <path d="m12 8 0 8"/>
+                                        <path d="m8 12 8 0"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="stat-label">Sunrise</p>
+                                    <p id="sunrise" class="stat-value"></p>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="stat-label">Sunset</p>
+                                    <p id="sunset" class="stat-value"></p>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                                        <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/>
+                                        <path d="M9.6 4.6A2 2 0 1 1 11 8H2"/>
+                                        <path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="stat-label">Wind</p>
+                                    <p id="wind-detail" class="stat-value"></p>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="stat-label">Visibility</p>
+                                    <p id="visibility" class="stat-value"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="weather-alert"></div>
+                    <!-- Weather Advice -->
+                    <div class="card">
+                        <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">Weather Advice</h2>
+                        <div id="weather-advice" class="advice-content">
+                            <p>Get personalized weather advice based on current conditions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>WeatherView © <span id="year"></span> | Data provided by OpenWeatherMap</p>
+        </footer>
     </div>
 
     <script src="weather.js"></script>
-    <script type="application/ld+json">
-        {
-        "content": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "WeatherNow",
-        "url": "https://weathernow.info"
-        "description": "Real-time weather conditions and forecast application",
-        "applicationCategory": "Weather Service",
-        "operatingSystem": "Any",
-        "offers": {
-            "@type":"Offer",
-            "price": "0"
-         }   
-        }
-        
 </body>
 </html>
